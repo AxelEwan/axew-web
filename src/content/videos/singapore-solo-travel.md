@@ -14,7 +14,7 @@ platforms:
 location: "Singapore, Marina Bay"
 isRecommend: true
 comments:
-  - user: "观众A"
+  - user: "Bob"
     avatar: "/images/avatars/default.png"
     content: "运镜太棒了！纯黑背景看视频沉浸感拉满。"
 ---
