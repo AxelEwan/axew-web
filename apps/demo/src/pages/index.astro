@@ -45,7 +45,16 @@ import {
 } from "@/components/demos";
 import Layout from "@/layouts/Layout.astro";
 ---
-
+<!-- 推荐视频 -->
+<h2 class="text-3xl font-bold mb-6">最新视频作品</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {videos.map(video => (
+    <a href={`/videos/${video.id.replace('.md', '')}`} class="group">
+      <img src={video.data.cover} class="rounded-2xl w-full aspect-video object-cover transition-all group-hover:scale-105" />
+      <h3 class="mt-4 text-xl font-semibold">{video.data.title}</h3>
+    </a>
+  ))}
+</div>
 <Layout
   title="Starwind UI components demo"
   description="A collection of accessible UI components built with Astro"
