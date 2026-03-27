@@ -12,47 +12,165 @@ export async function getStaticPaths() {
 
 const { video } = Astro.props;
 const data = video.data;
+
+// 判断是否是未来视频
+const now = new Date();
+const publishDate = new Date(data.date);
+const isFuture = publishDate > now;
+
 ---
 
 <Layout title={data.title}>
-  <main class="min-h-screen bg-black text-white">
-    <div class="max-w-7xl mx-auto px-6 py-12">
-      <!-- 视频播放器占位 -->
-      <div class="aspect-video bg-zinc-900 rounded-3xl overflow-hidden mb-10 relative group">
-        <img 
-          src={data.cover} 
-          class="w-full h-full object-cover transition-transform group-hover:scale-105" 
-          alt={data.title} 
-        />
-        <div class="absolute inset-0 flex items-center justify-center bg-black/30">
-          <div class="text-7xl text-white/80">▶️</div>
-        </div>
+  <main class="min-h-screen bg-black text-white pb-20">
+    <div class="max-w-7xl mx-auto px-6 pt-8">
+      <!-- 视频播放器 -->
+      <div class="aspect-video bg-zinc-950 rounded-3xl overflow-hidden mb-12 relative shadow-2xl">
+        <!-- 未来视频：高斯模糊 + 锁 + 倒计时 -->
+        {isFuture ? (
+          <div class="relative w-full h-full">
+            <img src={data.cover} class="w-full h-full object-cover filter blur-xl" alt={data.title} />
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md">
+              <div class="text-6xl mb-6">🔒</div>
+              <div class="text-3xl font-bold mb-2">即将发布</div>
+              <div id="countdown" class="text-4xl font-mono tabular-nums"></div>
+            </div>
+          </div>
+        ) : (
+          <!-- 正常播放器：根据平台默认嵌入 -->
+          <div class="w-full h-full">
+            {data.platforms?.bilibili ? (
+              <iframe 
+                src={`https://player.bilibili.com/player.html?bvid=${data.platforms.bilibili}&autoplay=0&muted=0`} 
+                class="w-full h-full" 
+                frameborder="0" 
+                allowfullscreen
+              ></iframe>
+            ) : data.platforms?.youtube ? (
+              <iframe 
+                src={`https://www.youtube.com/embed/${data.platforms.youtube}`} 
+                class="w-full h-full" 
+                frameborder="0" 
+                allowfullscreen
+              ></iframe>
+            ) : (
+              <img src={data.cover} class="w-full h-full object-cover" alt={data.title} />
+            )}
+          </div>
+        )}
       </div>
 
-      <h1 class="text-5xl font-bold tracking-tight mb-3">{data.title}</h1>
-      <p class="text-zinc-400 text-xl">
-        {new Date(data.date).toLocaleDateString('zh-CN')}
-      </p>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <!-- 左侧信息 -->
+        <div class="lg:col-span-8">
+          <h1 class="text-5xl font-bold tracking-tighter mb-4">{data.title}</h1>
+          <div class="flex items-center gap-4 text-zinc-400 mb-8">
+            <span>{new Date(data.date).toLocaleDateString('zh-CN')}</span>
+            <span class="px-3 py-1 bg-zinc-900 rounded-full text-sm">{data.category}</span>
+          </div>
 
-      <p class="mt-10 text-lg leading-relaxed text-zinc-300">{data.intro}</p>
+          <p class="text-xl text-zinc-300 leading-relaxed mb-8">{data.intro}</p>
 
-      <!-- 平台跳转 -->
-      <div class="flex flex-wrap gap-6 mt-12">
-        {data.platforms?.bilibili && (
-          <a href={`https://www.bilibili.com/video/${data.platforms.bilibili}`} 
-             target="_blank" 
-             class="flex items-center gap-3 text-blue-400 hover:text-blue-300 transition-colors">
-            📺 <span class="font-medium">B站观看</span>
-          </a>
-        )}
-        {data.platforms?.youtube && (
-          <a href={`https://www.youtube.com/watch?v=${data.platforms.youtube}`} 
-             target="_blank" 
-             class="flex items-center gap-3 text-red-500 hover:text-red-400 transition-colors">
-            ▶️ <span class="font-medium">YouTube</span>
-          </a>
-        )}
+          <!-- Tag + 位置 -->
+          <div class="flex flex-wrap gap-2 mb-8">
+            {data.tags.map(tag => (
+              <span class="px-4 py-1 bg-zinc-900 text-sm rounded-3xl">{tag}</span>
+            ))}
+            {data.location && <span class="text-zinc-400">📍 {data.location}</span>}
+          </div>
+
+          <!-- 评分 + 播放量 + 点赞 -->
+          {data.showRating && data.rating && (
+            <div class="grid grid-cols-3 gap-8 mb-12 border-t border-b border-zinc-800 py-8">
+              <div>
+                <div class="text-6xl font-bold text-white">{data.rating}</div>
+                <div class="text-sm text-zinc-400">评分</div>
+              </div>
+              <div>
+                <div class="text-6xl font-bold text-white">{data.views.toLocaleString()}</div>
+                <div class="text-sm text-zinc-400">播放量</div>
+              </div>
+              <div>
+                <div class="text-6xl font-bold text-white">{data.likes.toLocaleString()}</div>
+                <div class="text-sm text-zinc-400">点赞</div>
+              </div>
+            </div>
+          )}
+
+          <!-- 评论区 -->
+          {data.enableComments && data.comments?.length > 0 && (
+            <div>
+              <h3 class="text-2xl font-semibold mb-6">观众评论</h3>
+              <div class="space-y-8">
+                {data.comments.map((comment, i) => (
+                  <div class={`flex gap-4 ${i === data.comments.length - 1 ? 'opacity-30 blur-sm' : ''}`}>
+                    <img src={comment.avatar} class="w-10 h-10 rounded-full" />
+                    <div>
+                      <div class="font-medium">{comment.nickname}</div>
+                      <div class="text-zinc-300">{comment.content}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div class="mt-8 text-center">
+                <a href={`https://www.bilibili.com/video/${data.platforms?.bilibili || ''}`} 
+                   target="_blank" 
+                   class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300">
+                  查看更多评论 →
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <!-- 右侧平台 LOGO -->
+        <div class="lg:col-span-4">
+          <div class="sticky top-8">
+            <h4 class="text-lg text-zinc-400 mb-4">在其他平台观看</h4>
+            <div class="flex flex-col gap-4">
+              {data.platforms?.bilibili && (
+                <a href={`https://www.bilibili.com/video/${data.platforms.bilibili}`} target="_blank" class="flex items-center gap-4 p-4 bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition-colors">
+                  <span class="text-3xl">📺</span>
+                  <div>
+                    <div class="font-medium">Bilibili</div>
+                    <div class="text-xs text-zinc-400">大陆首选</div>
+                  </div>
+                </a>
+              )}
+              {data.platforms?.youtube && (
+                <a href={`https://www.youtube.com/watch?v=${data.platforms.youtube}`} target="_blank" class="flex items-center gap-4 p-4 bg-zinc-900 hover:bg-zinc-800 rounded-2xl transition-colors">
+                  <span class="text-3xl">▶️</span>
+                  <div>
+                    <div class="font-medium">YouTube</div>
+                    <div class="text-xs text-zinc-400">国际版</div>
+                  </div>
+                </a>
+              )}
+              {/* 后续可继续加抖音、小红书、local */}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
+
+  <!-- 未来视频倒计时脚本 -->
+  {isFuture && (
+    <script define:vars={{ publishDate: publishDate.getTime() }}>
+      const countdownEl = document.getElementById('countdown');
+      const end = new Date({publishDate}).getTime();
+      const timer = setInterval(() => {
+        const now = Date.now();
+        const diff = end - now;
+        if (diff < 0) {
+          clearInterval(timer);
+          window.location.reload();
+          return;
+        }
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        countdownEl.textContent = `${hours.toString().padStart(2, '0')} : ${minutes.toString().padStart(2, '0')} : ${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    </script>
+  )}
 </Layout>
