@@ -29,71 +29,94 @@ const author = data.author || 'AxelEwan';
 <Layout title={data.title}>
   <main class="min-h-screen bg-black text-white pb-20 dark:bg-zinc-950">
     <div class="max-w-7xl mx-auto px-6 pt-8">
-      <!-- 视频播放器区域 -->
-      <div id="video-container" class="aspect-video bg-zinc-950 rounded-3xl overflow-hidden mb-12 relative shadow-2xl cursor-pointer group"
-           data-is-future={isFuture ? 'true' : 'false'}
-           data-publish-time={publishDate.getTime()}>
-        
-        <!-- 未来视频 / 未播放状态：模糊封面 + 锁 + 倒计时 + 点击播放 -->
-        <div id="future-overlay" class={isFuture ? 'block' : 'hidden'}>
-          <img src={data.cover} class="w-full h-full object-cover filter blur-xl" alt={data.title} />
-          <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md">
-            <!-- UIL Lock 图标（白色） -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mb-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 11V7a5 5 0 00-10 0v4m10 0H7a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2z" />
-            </svg>
-            <div class="text-3xl font-bold mb-3">即将发布</div>
-            <div id="countdown" class="text-4xl font-mono tabular-nums text-white" data-publish-date={publishDate.getTime()}></div>
-          </div>
+      <!-- 视频区域 + 影院灯效背景 -->
+      <div class="relative mb-12">
+        <!-- 灯效背景层（取封面色 + 高斯模糊 + 发光） -->
+        <div class="absolute inset-0 -z-10 overflow-hidden rounded-2xl">
+          <img 
+            src={data.cover} 
+            class="w-full h-full object-cover scale-110 blur-3xl opacity-30 brightness-75" 
+            alt="" 
+          />
+          <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black"></div>
         </div>
 
-        <!-- 已发布视频：封面 + 大播放按钮（点击后显示 iframe） -->
-        <div id="ready-state" class={isFuture ? 'hidden' : 'block'}>
-          <img id="cover-image" src={data.cover} class="w-full h-full object-cover transition-all group-hover:scale-105" alt={data.title} />
-          <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
-            <div id="play-button" class="w-20 h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all active:scale-95">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5.14v14l11-7z"/>
+        <!-- 主视频容器 -->
+        <div id="video-container" class="aspect-video bg-zinc-950 rounded-2xl overflow-hidden relative shadow-2xl cursor-pointer group"
+             data-is-future={isFuture ? 'true' : 'false'}
+             data-publish-time={publishDate.getTime()}>
+          
+          <!-- 未来视频状态 -->
+          <div id="future-overlay" class={isFuture ? 'block' : 'hidden'}>
+            <img src={data.cover} class="w-full h-full object-cover filter blur-xl" alt={data.title} />
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md">
+              <!-- UIL Lock 图标（白色） -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mb-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 11V7a5 5 0 00-10 0v4m10 0H7a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2z" />
               </svg>
+              <div class="text-3xl font-bold mb-3">即将发布</div>
+              <div id="countdown" class="text-4xl font-mono tabular-nums text-white" data-publish-date={publishDate.getTime()}></div>
             </div>
           </div>
-        </div>
 
-        <!-- 实际播放器（隐藏，直到点击播放） -->
-        <div id="player" class="hidden w-full h-full">
-          {data.platforms?.bilibili ? (
-            <iframe src={`https://player.bilibili.com/player.html?bvid=${data.platforms.bilibili}&autoplay=1&muted=0`} class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-          ) : data.platforms?.youtube ? (
-            <iframe src={`https://www.youtube.com/embed/${data.platforms.youtube}?autoplay=1`} class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-          ) : data.platforms?.local ? (
-            <video controls class="w-full h-full" src={data.platforms.local}></video>
-          ) : (
-            <img src={data.cover} class="w-full h-full object-cover" alt={data.title} />
-          )}
+          <!-- 已发布未播放状态（封面 + 大播放按钮） -->
+          <div id="ready-state" class={isFuture ? 'hidden' : 'block'}>
+            <img id="cover-image" src={data.cover} class="w-full h-full object-cover transition-all group-hover:scale-[1.03]" alt={data.title} />
+            <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
+              <div id="play-button" class="w-20 h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all active:scale-95 shadow-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5.14v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- 真实播放器（点击后显示，默认不自动播放） -->
+          <div id="player" class="hidden w-full h-full">
+            {data.platforms?.bilibili ? (
+              <iframe 
+                src={`https://player.bilibili.com/player.html?bvid=${data.platforms.bilibili}&autoplay=0&muted=0`} 
+                class="w-full h-full" 
+                frameborder="0" 
+                allowfullscreen
+              ></iframe>
+            ) : data.platforms?.youtube ? (
+              <iframe 
+                src={`https://www.youtube.com/embed/${data.platforms.youtube}?autoplay=0`} 
+                class="w-full h-full" 
+                frameborder="0" 
+                allowfullscreen
+              ></iframe>
+            ) : data.platforms?.local ? (
+              <video controls class="w-full h-full" src={data.platforms.local}></video>
+            ) : (
+              <img src={data.cover} class="w-full h-full object-cover" alt={data.title} />
+            )}
+          </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <!-- 左侧 -->
+        <!-- 左侧信息 -->
         <div class="lg:col-span-8">
-          <h1 class="text-5xl font-bold tracking-tighter mb-4">{data.title}</h1>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tighter mb-4">{data.title}</h1>
           
           <div class="flex items-center gap-2 text-zinc-400 mb-8">
             <span class="text-white font-medium">{author}</span>
           </div>
 
-          <!-- 三列：发布日期 | 播放量 | 点赞 -->
+          <!-- 三列数据（自适应字号） -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 border-t border-b border-zinc-800 py-8">
             <div>
-              <div class="text-4xl font-bold text-white">{new Date(data.date).toLocaleDateString('zh-CN')}</div>
+              <div class="text-3xl sm:text-4xl font-bold text-white">{new Date(data.date).toLocaleDateString('zh-CN')}</div>
               <div class="text-sm text-zinc-400">发布日期</div>
             </div>
             <div>
-              <div class="text-4xl font-bold text-white">{formatNumber(data.views)}</div>
+              <div class="text-3xl sm:text-4xl font-bold text-white">{formatNumber(data.views)}</div>
               <div class="text-sm text-zinc-400">播放量</div>
             </div>
             <div>
-              <div class="text-4xl font-bold text-white">{formatNumber(data.likes)}</div>
+              <div class="text-3xl sm:text-4xl font-bold text-white">{formatNumber(data.likes)}</div>
               <div class="text-sm text-zinc-400">点赞</div>
             </div>
           </div>
@@ -138,7 +161,7 @@ const author = data.author || 'AxelEwan';
           )}
         </div>
 
-        <!-- 右侧平台（全部白色） -->
+        <!-- 右侧平台（白色） -->
         <div class="lg:col-span-4">
           <div class="sticky top-8">
             <h4 class="text-lg text-zinc-400 mb-6">在其他平台观看</h4>
@@ -161,7 +184,6 @@ const author = data.author || 'AxelEwan';
                   </div>
                 </a>
               )}
-              {/* 抖音、小红书、本地同理，全部白色，可继续添加 */}
             </div>
           </div>
         </div>
@@ -169,7 +191,7 @@ const author = data.author || 'AxelEwan';
     </div>
   </main>
 
-  <!-- 客户端脚本：倒计时 + 点击播放 + 时间到自动切换 -->
+  <!-- 客户端脚本 -->
   <script>
     const container = document.getElementById('video-container');
     const futureOverlay = document.getElementById('future-overlay');
@@ -178,16 +200,15 @@ const author = data.author || 'AxelEwan';
     const countdownEl = document.getElementById('countdown');
     const playButton = document.getElementById('play-button');
 
+    // 倒计时 + 时间到自动切换
     if (countdownEl) {
       const endTime = parseInt(countdownEl.dataset.publishDate);
       const timer = setInterval(() => {
         const diff = endTime - Date.now();
         if (diff <= 0) {
           clearInterval(timer);
-          // 时间到：隐藏倒计时，显示正常播放状态
           if (futureOverlay) futureOverlay.classList.add('hidden');
           if (readyState) readyState.classList.remove('hidden');
-          container.dataset.isFuture = 'false';
           return;
         }
         const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
@@ -197,7 +218,7 @@ const author = data.author || 'AxelEwan';
       }, 1000);
     }
 
-    // 点击播放按钮或封面 → 显示真实播放器
+    // 点击播放
     function playVideo() {
       if (readyState) readyState.classList.add('hidden');
       if (player) player.classList.remove('hidden');
