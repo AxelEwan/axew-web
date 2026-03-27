@@ -4,12 +4,10 @@ import Layout from '@/layouts/Layout.astro';
 
 const allVideos = await getCollection('videos');
 
-// 推荐视频排序（最新的排前面）
 const recommendedVideos = allVideos.sort((a, b) => 
   new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
 );
 
-// 轮播 Banner
 const banners = [
   {
     id: 1,
@@ -30,10 +28,10 @@ const banners = [
 ];
 ---
 
-<Layout title="AxelEwan | 个人作品官网" description="AxelEwan 的视频作品与最新动态">
+<Layout title="一万AxelEwan" description="AxelEwan 的视频作品与最新动态">
   <main class="min-h-screen bg-black text-white">
     
-    <!-- 顶部轮播图（优酷风格） -->
+    <!-- 顶部轮播图 -->
     <div id="hero-carousel" class="relative h-[85vh] min-h-[620px] overflow-hidden">
       {banners.map((banner, index) => (
         <div 
@@ -42,10 +40,8 @@ const banners = [
         >
           <img src={banner.bgImage} class="absolute inset-0 w-full h-full object-cover" alt={banner.title} />
           
-          <!-- 底部渐变遮罩 -->
           <div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
           
-          <!-- 内容区 -->
           <div class="absolute bottom-16 left-8 md:left-16 max-w-xl z-20">
             <h1 class="text-5xl md:text-7xl font-black tracking-tighter drop-shadow-2xl">{banner.title}</h1>
             
@@ -86,8 +82,9 @@ const banners = [
           const daysAgo = Math.floor((Date.now() - new Date(video.data.date).getTime()) / 86400000);
           const isNew = daysAgo <= 7;
           const isHot = (video.data.views || 0) > 50000;
+
           return (
-            <a href={`/videos/${video.id.replace('.md', '')}`} class="group relative">
+            <a href={`/videos/${video.id.replace('.md', '')}`} class="group relative" key={video.id}>
               <div class="aspect-video bg-zinc-900 rounded-2xl overflow-hidden mb-3 relative">
                 <img 
                   src={video.data.cover} 
@@ -111,19 +108,19 @@ const banners = [
       </div>
     </div>
 
-    <!-- 最新动态占位 -->
+    <!-- 最新动态 -->
     <div class="max-w-7xl mx-auto px-6 py-16 border-t border-zinc-800">
       <h2 class="text-4xl font-bold tracking-tight mb-10">最新动态</h2>
       <p class="text-zinc-400">最新动态部分正在完善中...</p>
     </div>
   </main>
 
-  <!-- 轮播图客户端脚本 -->
+  <!-- 轮播脚本 -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const slides = document.querySelectorAll('#hero-carousel > div[data-slide]');
       const progressBar = document.getElementById('progress-bar');
-      if (!slides.length) return;
+      if (slides.length === 0) return;
 
       let current = 0;
       const intervalTime = 6000;
@@ -152,13 +149,13 @@ const banners = [
       let autoTimer = setInterval(nextSlide, intervalTime);
       resetProgress();
 
-      document.getElementById('next-btn').addEventListener('click', () => {
+      document.getElementById('next-btn')?.addEventListener('click', () => {
         clearInterval(autoTimer);
         nextSlide();
         autoTimer = setInterval(nextSlide, intervalTime);
       });
 
-      document.getElementById('prev-btn').addEventListener('click', () => {
+      document.getElementById('prev-btn')?.addEventListener('click', () => {
         clearInterval(autoTimer);
         current = (current - 1 + slides.length) % slides.length;
         showSlide(current);
