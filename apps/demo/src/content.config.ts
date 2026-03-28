@@ -9,36 +9,26 @@ const pages = defineCollection({
   }),
 });
 
-// === 你要的视频集合（核心字段已全部加上）===
 const videos = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/videos" }),
   schema: z.object({
     title: z.string(),
-    date: z.date(),                    // 支持未来日期
+    date: z.date().or(z.string()),           // 支持字符串日期
     cover: z.string(),
     recommend: z.boolean().optional().default(false),
     enableComments: z.boolean().default(true),
     showRating: z.boolean().default(true),
     hide: z.boolean().optional().default(false),
-    category: z.string(),
-    intro: z.string(),
-    tags: z.array(z.string()).default([]),
+    category: z.string().optional(),
+    intro: z.string().optional(),
+    tags: z.array(z.string()).optional().default([]),
     location: z.string().optional(),
-    platforms: z.object({
-      bilibili: z.string().optional(),   // 只填 BV 号，例如 BV1xx1234abc
-      douyin: z.string().optional(),
-      xiaohongshu: z.string().optional(),
-      youtube: z.string().optional(),
-      local: z.string().optional(),      // 本地视频直链
-    }).optional(),
-    rating: z.number().min(0).max(10).optional(),
+    platforms: z.string().optional(),        // 兼容你现在的字符串格式
+    rating: z.number().optional(),
     views: z.number().optional().default(0),
     likes: z.number().optional().default(0),
-    comments: z.array(z.object({
-      avatar: z.string(),
-      nickname: z.string(),
-      content: z.string(),
-    })).optional().default([]),
+    author: z.string().optional(),
+    comments: z.array(z.any()).optional().default([]),  // 兼容任意格式
   }),
 });
 
